@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated" // Output Prisma Client to a 'generated' folder within the prisma directory
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Session Model
+model Session {
+  id        String        @id @default(uuid())
+  status    SessionStatus
+  createdAt DateTime      @default(now())
+  deadline  DateTime?
+  rawPlan   String?
+  tasks     Task[] // Relation to Task model
+}
+
+// Task Model
+model Task {
+  id              String     @id @default(uuid())
+  sessionId       String
+  session         Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  order           Int
+  description     String
+  status          TaskStatus
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  rawReactHistory String?
+}
+
+// Enums
+enum SessionStatus {
+  OPEN
+  PLANNING
+  EXECUTING
+  COMPLETED
+  FAILED
+  AWAITING_CONFIRMATION
+  DEADLINE_EXCEEDED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
